@@ -1,0 +1,43 @@
+name: Publish image
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-arm64:
+    runs-on: MACROARM64
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Publish
+        run: |
+          docker build -t esp32-micropython-server .
+          docker login -u coderookieerick -p ${{ secrets.DOCKER_HUB }}
+          docker tag esp32-micropython-server coderookieerick/esp32-micropython-server:linux-arm64
+          docker push coderookieerick/esp32-micropython-server:linux-arm64
+
+  build-amd64:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Publish
+        run: |
+          docker build -t esp32-micropython-server .
+          docker login -u coderookieerick -p ${{ secrets.DOCKER_HUB }}
+          docker tag esp32-micropython-server coderookieerick/esp32-micropython-server:linux-amd64
+          docker push coderookieerick/esp32-micropython-server:linux-amd64

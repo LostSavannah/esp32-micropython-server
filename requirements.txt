@@ -1,0 +1,5 @@
+uvicorn
+fastapi
+esptool
+adafruit-ampy
+python-multipart
