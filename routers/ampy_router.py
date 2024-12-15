@@ -9,7 +9,8 @@ import subprocess
 
 def run_command(command:str, callback = None):
     print(command)
-    res = subprocess.run(command, stdout=subprocess.PIPE)
+    app, *args = command.split(" ")
+    res = subprocess.run([app, *args], stdout=subprocess.PIPE)
     if callback is not None:
         callback(res.stdout.decode())
     return res.returncode
