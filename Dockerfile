@@ -9,11 +9,11 @@ RUN mkdir ./firmware
 RUN curl -o ./firmware/firmware.bin ${FIRMWARE}
 
 #Installing requirements
-COPY ./requirements.txt .
+COPY ./src/api/requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY ./server.py .
-COPY ./routers ./routers
+COPY ./src/api/server.py .
+COPY ./src/api/routers ./routers
 
 EXPOSE 8955
 

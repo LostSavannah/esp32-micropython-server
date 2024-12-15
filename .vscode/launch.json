@@ -8,7 +8,7 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "./server.py",
+            "program": ".src/api/server.py",
             "console": "integratedTerminal",
             "env": {
                 "USB_PORT": "COM4",
