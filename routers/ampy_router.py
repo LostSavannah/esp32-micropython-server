@@ -6,6 +6,8 @@ import base64
 import os
 import uuid
 import subprocess
+import zipfile
+from io import BytesIO
 
 def run_command(command:str, callback = None):
     print(command)
@@ -41,6 +43,15 @@ def get_content(path:str):
     run_ampy_command(f"get {path}", callback=set_result)
     return result
 
+def set_content(path:str, file:bytes):
+    local_file = str(uuid.uuid4())
+    with open(local_file, 'wb') as fi:
+        fi.write(file)
+    ensure_directory(path)
+    run_ampy_command(f"put {local_file} {path}")
+    os.remove(local_file)
+    return path
+
 def router() -> APIRouter:
     app = APIRouter()
 
@@ -71,15 +82,25 @@ def router() -> APIRouter:
     def get_file_content(path:str):
         return Response(content=get_content(path))
 
+    @app.post("/files/zip:{path:path}")
+    def upload_zip(path:str, file:Annotated[bytes, File()]):
+        results = dict()
+        with BytesIO(file) as bytes_io:
+            zip_file = zipfile.ZipFile(bytes_io)
+            files = [i for i in zip_file.infolist() if not i.is_dir()]
+            for entry in files:
+                try:
+                    current_path = f"{path}/{entry.filename}"
+                    current_bytes = zip_file.read(entry.filename)
+                    set_content(current_path, current_bytes)
+                    results[current_path] = True
+                except:
+                    results[current_path] = False
+            return results
+
     @app.post("/files/{path:path}")
     def upload_file(path:str, file:Annotated[bytes, File()]):
-        local_file = str(uuid.uuid4())
-        with open(local_file, 'wb') as fi:
-            fi.write(file)
-        ensure_directory(path)
-        run_ampy_command(f"put {local_file} {path}")
-        os.remove(local_file)
-        return path
+        return set_content(path, file)
 
     @app.delete("/files/{path:path}")
     def delete_directory(path:str):
