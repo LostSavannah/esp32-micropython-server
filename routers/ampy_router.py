@@ -60,7 +60,8 @@ def router() -> APIRouter:
         result = []
         def set_result(value:str):
             nonlocal result
-            result = [(i[2:] if i.startswith("/.") else i) for i in value.split('\r\n') if len(i) > 0]
+            files = value.replace("\r\n", '\n').replace("\r", "\n").split("\n")
+            result = [(i[2:] if i.startswith("/.") else i) for i in files if len(i) > 0]
         run_ampy_command(f"ls {path}", callback=set_result)
         return result
 
