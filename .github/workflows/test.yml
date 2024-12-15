@@ -19,5 +19,5 @@ jobs:
       - name: Refresh image
         run: |
           docker build -t esp32-micropython-server .
-          docker stop esp32-micropython-server || true
-          docker run -itd --rm --device /dev/ttyUSB0 -p 8955:8955 --name esp32-micropython-server esp32-micropython-server 
+          docker stop esp32-micropython-server-test || true
+          docker run -itd --rm --device /dev/ttyUSB0 -p 8956:8955 --name esp32-micropython-server-test esp32-micropython-server 
