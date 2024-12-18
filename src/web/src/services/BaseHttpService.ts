@@ -1,5 +1,3 @@
-const baseUrl:string = import.meta.env.VITE_API_URL;
-
 export enum Method{
     Get = "get",
     Post = "post",
@@ -39,8 +37,10 @@ function bodyParser<T>(parameter:string|T, init:RequestInit){
 }
 
 export default class BaseHttpService{
-    
-    protected baseUrl:string = baseUrl;
+
+    constructor(protected baseUrl:string){
+
+    }
 
     protected async send<TResult>({url, method, callback, init}:HttpServiceRequest<TResult>):Promise<TResult>{
         return new Promise<TResult>((resolve, reject) => {

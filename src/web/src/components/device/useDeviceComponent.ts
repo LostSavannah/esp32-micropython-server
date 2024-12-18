@@ -11,7 +11,7 @@ export enum DeviceFlashState {
 export function useDeviceComponent(){
     const [deviceFlashState, setDeviceFlashState] = useState<DeviceFlashState>(DeviceFlashState.None);
     
-    const service = new DeviceEsptoolService();
+    const service = new DeviceEsptoolService("");
 
     function flashChip(){
         setDeviceFlashState(DeviceFlashState.Pending);

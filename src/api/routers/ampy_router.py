@@ -99,6 +99,11 @@ def router() -> APIRouter:
                     results[current_path] = False
             return results
 
+    @app.post("/files/write:{path:path}")
+    async def write_file(path:str, request:Request):
+        content = await request.body()
+        return set_content(path, content)
+
     @app.post("/files/{path:path}")
     def upload_file(path:str, file:Annotated[bytes, File()]):
         return set_content(path, file)
