@@ -20,5 +20,6 @@ EXPOSE 8955
 ENV USB_PORT="/dev/ttyUSB0"
 ENV ESP32_TOOL="esptool.py"
 ENV AMPY_TOOL="ampy"
+ENV VERSIONS_ZIP="/app/versions.zip"
 
 CMD [ "python", "/app/server.py" ]
