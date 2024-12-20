@@ -6,7 +6,7 @@ from core.version_manager import VersionManager
 import zipfile
 import os
 
-def router(version_manager:VersionManager) -> APIRouter:
+def router() -> APIRouter:
     app = APIRouter()
     
     version_manager = VersionManager(
