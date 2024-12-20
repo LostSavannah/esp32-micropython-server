@@ -15,11 +15,16 @@ RUN pip install -r requirements.txt
 COPY ./src/api/server.py .
 COPY ./src/api/routers ./routers
 
+#TODO: Generate db instead
+COPY ./src/api/data/database.db ./data/database.db
+RUN mkdir ./versions
+
 EXPOSE 8955
 
 ENV USB_PORT="/dev/ttyUSB0"
 ENV ESP32_TOOL="esptool.py"
 ENV AMPY_TOOL="ampy"
-ENV VERSIONS_ZIP="/app/versions.zip"
+ENV VERSIONS_ROOT="/app/versions"
+ENV VERSIONS_DB="/app/data/database.db"
 
 CMD [ "python", "/app/server.py" ]

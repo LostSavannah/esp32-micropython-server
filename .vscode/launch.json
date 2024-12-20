@@ -14,8 +14,8 @@
                 "USB_PORT": "COM4",
                 "ESP32_TOOL": "esptool",
                 "AMPY_TOOL": "ampy",
-                "VERSIONS_ZIP": "D:\\versions.zip",
-                "VERSIONS_DB": "D:\\versions.db",
+                "VERSIONS_ROOT": "C:\\projects\\esp32-micropython-server\\src\\api\\versions",
+                "VERSIONS_DB": "C:\\projects\\esp32-micropython-server\\src\\api\\data\\database.db",
             }
         }
     ]

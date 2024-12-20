@@ -13,6 +13,7 @@ class VersionManager:
 
     def get_version(self, epoch:float = None) -> dict[str, str]:
         epoch = epoch or time.time()
+        result = dict()
         query = """
         select v.* 
         from versions as v 
@@ -31,18 +32,20 @@ class VersionManager:
         with sqlite3.Connection(self.database) as connection:
             c = connection.execute(query, (epoch,))
             for r in c:
+                result[r[2]] = r[0]
                 print(r)
-        return dict()
+        return result
 
-    def set_file(self, path:str, data:bytes):
+    def set_file(self, path:str, data:bytes) -> str:
         checksum = get_checksum(data)
         file_path = os.sep.join([self.root, checksum])
         moment = time.time()
-        with open(file_path, 'w') as fo:
+        with open(file_path, 'wb') as fo:
             fo.write(data)
         query = "insert into versions VALUES (?, ?, ?);"
         with sqlite3.Connection(self.database) as connection:
             connection.execute(query, (checksum, moment, path))
+        return checksum
 
     def get_file(self, path:str, epoch:float = None) -> bytes|None:
         versions = self.get_version(epoch)

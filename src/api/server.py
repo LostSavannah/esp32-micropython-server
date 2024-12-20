@@ -16,6 +16,8 @@ def configure_cors(api:FastAPI) -> FastAPI:
 
 app = configure_cors(FastAPI())
 
+
+
 app.include_router(esptool_router(), prefix="/device/esptools", tags=["Esptool"])
 app.include_router(ampy_router(), prefix="/device/ampy", tags=["Ampy"])
 app.include_router(versions_router(), prefix="/core", tags=["Core versions"])
