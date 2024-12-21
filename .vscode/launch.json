@@ -16,6 +16,7 @@
                 "AMPY_TOOL": "ampy",
                 "VERSIONS_ROOT": "C:\\projects\\esp32-micropython-server\\src\\api\\versions",
                 "VERSIONS_DB": "C:\\projects\\esp32-micropython-server\\src\\api\\data\\database.db",
+                "VERSIONS_DB_SRC": "C:\\projects\\esp32-micropython-server\\src\\api\\data\\database.sql"
             }
         }
     ]

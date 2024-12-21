@@ -16,9 +16,9 @@ COPY ./src/api/core ./core
 COPY ./src/api/server.py .
 COPY ./src/api/routers ./routers
 
+COPY ./src/api/data ./data
+COPY ./src/api/migrate_database.py .
 
-#TODO: Generate db instead
-COPY ./src/api/data/database.db ./data/database.db
 RUN mkdir ./versions
 
 EXPOSE 8955
@@ -28,5 +28,8 @@ ENV ESP32_TOOL="esptool.py"
 ENV AMPY_TOOL="ampy"
 ENV VERSIONS_ROOT="/app/versions"
 ENV VERSIONS_DB="/app/data/database.db"
+ENV VERSIONS_DB_SRC="/app/data/database.sql"
+
+RUN python ./migrate_database.py
 
 CMD [ "python", "/app/server.py" ]

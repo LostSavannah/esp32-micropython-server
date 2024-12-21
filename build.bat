@@ -1,1 +1,1 @@
-docker build -t esp32-mycropython-server .
+docker build -t esp32-micropython-server .
