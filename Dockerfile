@@ -12,8 +12,10 @@ RUN curl -o ./firmware/firmware.bin ${FIRMWARE}
 COPY ./src/api/requirements.txt .
 RUN pip install -r requirements.txt
 
+COPY ./src/api/core ./core
 COPY ./src/api/server.py .
 COPY ./src/api/routers ./routers
+
 
 #TODO: Generate db instead
 COPY ./src/api/data/database.db ./data/database.db
