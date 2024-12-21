@@ -13,8 +13,10 @@ def run_command(command:str, callback = None):
     print(command)
     app, *args = command.split(" ")
     res = subprocess.run([app, *args], stdout=subprocess.PIPE)
+    result = res.stdout.decode()
+    print(result)
     if callback is not None:
-        callback(res.stdout.decode())
+        callback(result)
     return res.returncode
 
 def ampy_args(**args):
