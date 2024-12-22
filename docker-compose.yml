@@ -1,0 +1,20 @@
+services:
+  esp32-micropython-server-ttyUSB0:
+    image: coderookieerick/esp32-micropython-server:linux-arm64
+    container_name: esp32-micropython-server-ttyUSB0
+    ports:
+      - "8955:8955"
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    restart: unless-stopped
+
+  esp32-micropython-server-ttyUSB1:
+    image: coderookieerick/esp32-micropython-server:linux-arm64
+    container_name: esp32-micropython-server-ttyUSB1
+    environment:
+      - USB_PORT=/dev/ttyUSB1
+    ports:
+      - "8956:8955"
+    devices:
+      - /dev/ttyUSB1:/dev/ttyUSB1
+    restart: unless-stopped
