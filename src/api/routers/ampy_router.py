@@ -13,7 +13,7 @@ from .common import normalize_command_result
 
 def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
 
-    def run_command(command:str, callback = None):
+    def run_command(command:str, callback = None, post_step: Callable[[], None] = None):
         def inner():
             print(command)
             app, *args = command.split(" ")
@@ -24,6 +24,8 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
                 on_command_output(normalize_command_result(result))
             if callback is not None:
                 callback(result)
+            if post_step is not None:
+                post_step()
             return res.returncode
         result = Thread(target=inner)
         result.start()
@@ -35,11 +37,11 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
             **args
         }
 
-    def run_ampy_command(command:str, callback = None, **args):
+    def run_ampy_command(command:str, callback = None, post_step: Callable[[], None] = None,  **args):
         std_args = ampy_args(**args)
         full_args = " ".join([f"--{a} {std_args[a]}" for a in std_args])
         tool = os.environ["AMPY_TOOL"]
-        return run_command(f"{tool} {full_args} {command}", callback)
+        return run_command(f"{tool} {full_args} {command}", callback, post_step)
 
     def ensure_directory(path:str):
         base = ""
@@ -60,8 +62,7 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
         with open(local_file, 'wb') as fi:
             fi.write(file)
         ensure_directory(path)
-        run_ampy_command(f"put {local_file} {path}").join()
-        os.remove(local_file)
+        run_ampy_command(f"put {local_file} {path}", post_step=lambda : os.remove(local_file))
         return path
 
     app = APIRouter()
@@ -131,8 +132,10 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
         with open(path, 'wb') as fo:
             fo.write(await request.body())
         output = ""
-        run_ampy_command(f"run {path}")
-        os.remove(path)
+        run_ampy_command(f"run {path}", post_step=lambda : os.remove(path))
+        return {
+            "message": "Run scheduled successfully..."
+        }
     
     @app.head("/reset")
     def resets_device():

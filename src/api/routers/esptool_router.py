@@ -7,7 +7,7 @@ import os
 
 def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
 
-    def run_command(command:str, callback = None):
+    def run_command(command:str, callback:Callable = None, post_step: Callable[[], None] = None):
         def inner():
             print(command)
             app, *args = command.split(" ")
@@ -18,6 +18,8 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
                 on_command_output(normalize_command_result(result))
             if callback is not None:
                 callback(result)
+            if post_step is not None:
+                post_step()
             return res.returncode
         result = Thread(target=inner)
         result.start()
@@ -29,11 +31,11 @@ def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
             **args
         }
 
-    def run_esptool_command(command:str, **args):
+    def run_esptool_command(command:str, post_step: Callable[[], None] = None, **args,):
         std_args = esptool_args(**args)
         full_args = " ".join([f"--{a} {std_args[a]}" for a in std_args])
         tool = os.environ["ESP32_TOOL"]
-        return run_command(f"{tool} {full_args} {command}")
+        return run_command(f"{tool} {full_args} {command}", post_step=post_step)
     
     app = APIRouter()
 
