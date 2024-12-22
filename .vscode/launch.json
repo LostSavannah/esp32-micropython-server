@@ -11,7 +11,7 @@
             "program": "./src/api/server.py",
             "console": "integratedTerminal",
             "env": {
-                "USB_PORT": "COM4",
+                "USB_PORT": "COM3",
                 "ESP32_TOOL": "esptool",
                 "AMPY_TOOL": "ampy",
                 "VERSIONS_ROOT": "C:\\projects\\esp32-micropython-server\\src\\api\\versions",

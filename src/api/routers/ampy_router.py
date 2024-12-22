@@ -1,60 +1,69 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, Response
 from fastapi import File
-from typing import Annotated
+from typing import Annotated, Callable
 import base64
 import os
 import uuid
 import subprocess
 import zipfile
 from io import BytesIO
+from threading import Thread
+from .common import normalize_command_result
 
-def run_command(command:str, callback = None):
-    print(command)
-    app, *args = command.split(" ")
-    res = subprocess.run([app, *args], stdout=subprocess.PIPE)
-    result = res.stdout.decode()
-    print(result)
-    if callback is not None:
-        callback(result)
-    return res.returncode
+def router(on_command_output:Callable[[list[str]],None] = None) -> APIRouter:
 
-def ampy_args(**args):
-    return {
-        "port": os.environ["USB_PORT"],
-        **args
-    }
+    def run_command(command:str, callback = None):
+        def inner():
+            print(command)
+            app, *args = command.split(" ")
+            res = subprocess.run([app, *args], stdout=subprocess.PIPE)
+            result = res.stdout.decode()
+            print(result)
+            if on_command_output is not None:
+                on_command_output(normalize_command_result(result))
+            if callback is not None:
+                callback(result)
+            return res.returncode
+        result = Thread(target=inner)
+        result.start()
+        return result
 
-def run_ampy_command(command:str, callback = None, **args):
-    std_args = ampy_args(**args)
-    full_args = " ".join([f"--{a} {std_args[a]}" for a in std_args])
-    tool = os.environ["AMPY_TOOL"]
-    return run_command(f"{tool} {full_args} {command}", callback)
+    def ampy_args(**args):
+        return {
+            "port": os.environ["USB_PORT"],
+            **args
+        }
 
-def ensure_directory(path:str):
-    base = ""
-    for part in path.split("/")[:-1]:
-        base = "/".join([base, part])
-        run_ampy_command(f"mkdir {base}")
+    def run_ampy_command(command:str, callback = None, **args):
+        std_args = ampy_args(**args)
+        full_args = " ".join([f"--{a} {std_args[a]}" for a in std_args])
+        tool = os.environ["AMPY_TOOL"]
+        return run_command(f"{tool} {full_args} {command}", callback)
 
-def get_content(path:str):
-    result = ""
-    def set_result(value:str):
-        nonlocal result
-        result = value
-    run_ampy_command(f"get {path}", callback=set_result)
-    return result
+    def ensure_directory(path:str):
+        base = ""
+        for part in path.split("/")[:-1]:
+            base = "/".join([base, part])
+            run_ampy_command(f"mkdir {base}").join()
 
-def set_content(path:str, file:bytes):
-    local_file = str(uuid.uuid4())
-    with open(local_file, 'wb') as fi:
-        fi.write(file)
-    ensure_directory(path)
-    run_ampy_command(f"put {local_file} {path}")
-    os.remove(local_file)
-    return path
+    def get_content(path:str):
+        result = ""
+        def set_result(value:str):
+            nonlocal result
+            result = value
+        run_ampy_command(f"get {path}", callback=set_result).join()
+        return result
 
-def router() -> APIRouter:
+    def set_content(path:str, file:bytes):
+        local_file = str(uuid.uuid4())
+        with open(local_file, 'wb') as fi:
+            fi.write(file)
+        ensure_directory(path)
+        run_ampy_command(f"put {local_file} {path}").join()
+        os.remove(local_file)
+        return path
+
     app = APIRouter()
 
     @app.get("/files/list:{path:path}")
@@ -64,7 +73,7 @@ def router() -> APIRouter:
             nonlocal result
             files = value.replace("\r\n", '\n').replace("\r", "\n").split("\n")
             result = [(i[2:] if i.startswith("/.") else i) for i in files if len(i) > 0]
-        run_ampy_command(f"ls {path}", callback=set_result)
+        run_ampy_command(f"ls {path}", callback=set_result).join()
         return result
 
     @app.get("/files/download:{path:path}")
@@ -112,16 +121,8 @@ def router() -> APIRouter:
 
     @app.delete("/files/{path:path}")
     def delete_directory(path:str):
-        result = run_ampy_command(f"rm {path}")
-        if result == 1:
-            result = run_ampy_command(f"rmdir {path}")
-        return path
-        
-    @app.delete("/files/{path:path}")
-    def delete_directory(path:str):
-        result = run_ampy_command(f"rm {path}")
-        if result == 1:
-            result = run_ampy_command(f"rmdir {path}")
+        run_ampy_command(f"rm {path}")
+        run_ampy_command(f"rmdir {path}")
         return path
     
     @app.post("/run")
@@ -130,24 +131,12 @@ def router() -> APIRouter:
         with open(path, 'wb') as fo:
             fo.write(await request.body())
         output = ""
-        def callback(msg:str):
-            nonlocal output
-            output = msg
-        result = run_ampy_command(f"run {path}", callback=callback)
+        run_ampy_command(f"run {path}")
         os.remove(path)
-        return {
-            "result": result,
-            "output": output
-        }
     
     @app.head("/reset")
     def resets_device():
-        result = ""
-        def callback(msg:str):
-            nonlocal result
-            result = msg
-        result = run_ampy_command(f"reset", callback=callback)
-        return result
+        run_ampy_command(f"reset")
 
 
     return app
